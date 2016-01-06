@@ -28,9 +28,6 @@ sub test {
 				use Template;
 			}
 
-			use HTML::Template;
-			use Template;
-			
 			my ($fname, $data) = @_;
 			my $tmpl = HTML::Template->new(filename => $fname);
 			$tmpl->param($data);

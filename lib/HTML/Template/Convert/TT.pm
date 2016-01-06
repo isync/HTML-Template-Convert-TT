@@ -4,6 +4,7 @@ use strict;
 use warnings;
 
 require Exporter;
+use Carp;
 
 our @ISA = qw(Exporter);
 our %EXPORT_TAGS = ( 'all' => [ qw(
@@ -17,7 +18,7 @@ our @EXPORT = qw(
 	print_params
 );
 
-our $VERSION = '0.04';
+our $VERSION = '0.05';
 
 
 sub parse_opts {
@@ -31,13 +32,16 @@ sub parse_opts {
     return $options;
 }
 sub convert {
-	my $source;
 	my $fname = shift;
+	my %opts = @_;
+
+	my $source;
 	if(ref($fname)) {
-		$source = $fname;
-	}
-	else {
-		open FH, $fname or die $!;
+		# user passed a scalar-ref
+		$source = $$fname;
+	}else{
+		# open file for user
+		open FH, $fname or die "convert: error opening $fname: $!";
 		# read whole file
 		undef $/;
 		$source = <FH>;
@@ -152,9 +156,17 @@ sub convert {
 					$gen_params = $sub_params;
 				}
 				elsif ($tag eq 'INCLUDE') {
-					$text .= convert($case_name, %$opts)
-						if $name or die "Empty 'NAME' parameter";
-						%$gen_params = (%$gen_params, %${$opts->{gen_params}}) if ref $opts->{gen_params};
+					if($opts{resolve_includes}){
+						$text .= convert($case_name, %$opts)
+							if $name or die "Empty 'NAME' parameter";
+							%$gen_params = (%$gen_params, %${$opts->{gen_params}}) if ref $opts->{gen_params};
+					}else{
+						$text .= "[% INCLUDE '$name' %]" 
+							if $name or
+								die "Empty 'NAME' parameter";
+						 my $sub_params = { 'parent hash' => $gen_params, 'child name' => $name };
+						$gen_params = $sub_params;
+					}
 				}
 				elsif ($tag eq 'IF' or $tag eq 'UNLESS') {
 					die "Empty 'NAME' parameter" if $name eq '';
@@ -230,14 +242,42 @@ HTML::Template::Convert::TT	- translates HTML::Template syntax into Template Too
 
   use HTML::Template::Convert::TT;
   use Template;
-  
-  my $foo-text = 'Hello, <TMPL_VAR wonderfull> world!';
+
+  my $ht_string = 'Hello, <TMPL_VAR wonderfull> world!';
+
+  $tt_string = convert(\$ht_string);
+
   my $tt = Template->new;
-  $tt->process(\$foo-text, {wonderfull->template});
+  $tt->process(\$tt_string, { wonderfull => "wonderful" });
 
 =head1 DESCRIPTION
 
-Translate HTML::Template template into Template toolkit syntax
+This module translates L<HTML::Template> templates into L<Template::Toolkit> syntax.
+
+You'll probably use it in a short service script, to convert your yout HT templates
+to TT2 syntax out of band:
+
+  #!perl
+  # convert_ht2tt.pl
+
+  use HTML::Template::Convert::TT;
+  my $tt = convert($ARGV[0]);
+  print $tt;
+
+And then you'd do:
+
+  $ convert_ht2tt.pl views/template.ht > views/template.tt
+
+=head2 FUNCTIONS
+
+B<convert>
+
+If you pass a scalar, convert() assumes it's a filename, opens it and parses its contents.
+But you can also pass the raw template by calling convert() with a scalar reference.
+
+Until version 0.04 INCLUDE'ed files in templates were read and included for output, which
+in version 0.05 is now the other way round. Pass "resolve_includes" => 1 in options to change
+this.
 
 =head2 EXPORT
 
@@ -246,11 +286,8 @@ convert('text', \$options)
 
 =head1 SEE ALSO
 
-Web site: http://code.google.com/p/html-template-convert/
-
-SVN: 
-	 Non-members may check out a read-only working copy anonymously over HTTP.
-	 svn checkout http://html-template-convert.googlecode.com/svn/trunk/ html-template-convert-read-only
+Formerly, this code lived at L<http://code.google.com/p/html-template-convert/> which is
+closed/ read-only now.
 
 =head1 AUTHOR
 
@@ -258,11 +295,10 @@ A. D. Solovets, E<lt>asolovets@gmail.comE<gt>
 
 =head1 COPYRIGHT AND LICENSE
 
-Copyright (C) 2009 by A. D. Solovets
+Copyright (C) 2009, 2016 A. D. Solovets and contributors.
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.10.0 or,
 at your option, any later version of Perl 5 you may have available.
-
 
 =cut

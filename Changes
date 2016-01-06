@@ -16,5 +16,9 @@ Revision history for Perl extension HTML::Template::Convert::TT.
 0.03	Sun May 03 22:17:00 2009
 	- optional parameters
 	- context variables
+0.04	26 Jun 2009
+	- Version on CPAN
+0.05	2015-01-06
+	- Forked version with fixes
 	
 
