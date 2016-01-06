@@ -1,9 +1,10 @@
-HTML-Template-Convert-TT version 0.01
+HTML-Template-Convert-TT version 0.05
 =====================================
 
-There is often need quickly change web-template engine
-of one site. In case of using HTML::Template it has become
-simply to use this module to convert templates to Template
+Often, there's need to change the web-template engine
+of a site. If you're in that place, and were formerly
+using HTML::Template then you're in luck, as this module
+makes it easy to convert templates to Template
 Toolkit syntax.
 
 INSTALLATION
@@ -24,10 +25,8 @@ This module requires these other modules and libraries:
 
 COPYRIGHT AND LICENCE
 
-Copyright (C) 2009 by A. D. Solovets 
+Copyright (C) 2009, 2016 A. D. Solovets and contributors
 
 This library is free software; you can redistribute it and/or modify
 it under the same terms as Perl itself, either Perl version 5.10.0 or,
 at your option, any later version of Perl 5 you may have available.
-
-
